@@ -9,47 +9,54 @@
             background-color: #121212;
             color: white;
             font-family: sans-serif;
-            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            margin: 0;
         }
 
-        .instruccions {
-            margin-bottom: 20px;
+        /* CONTENIDOR DEL REPRODUCTOR */
+        .player-box {
+            position: relative;
+            width: 300px;
+            height: 80px;
+            background: #282828;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #1DB954;
+        }
+
+        /* L'IFRAME REAL DE SPOTIFY */
+        iframe {
+            width: 100%;
+            height: 80px;
+            border: none;
+        }
+
+        /* LA CAPA QUE TAPA EL TEXT PERÒ DEIXA CLICAR */
+        .mask {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 220px; /* Tapem només la part del text (la dreta) */
+            height: 80px;
+            background: #282828; /* Color de fons de Spotify */
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* EL TRUC: El clic atravessa aquesta capa */
             color: #1DB954;
             font-weight: bold;
-        }
-
-        /* LA FINESTRA: Només deixem veure un quadrat de 80x80 píxels */
-        .window {
-            width: 80px;
-            height: 80px;
-            overflow: hidden; /* Tot el que surti d'aquí no es veurà */
-            border-radius: 50%;
-            border: 5px solid #1DB954;
-            position: relative;
-            background-color: #000;
-            box-shadow: 0 0 20px rgba(29, 185, 84, 0.5);
-        }
-
-        /* EL REPRODUCTOR: El movem perquè el botó de play coincideixi amb la finestra */
-        iframe {
-            position: absolute;
-            top: -76px;  /* Ajustem amunt/avall */
-            left: -12px; /* Ajustem esquerra/dreta */
-            width: 300px;
-            height: 380px;
-            border: none;
-            /* Eliminem el difuminat per evitar que Spotify es bloquegi */
+            font-size: 0.8rem;
         }
 
         .btn-reveal {
             margin-top: 40px;
-            background-color: #282828;
-            color: #aaa;
+            background: #282828;
+            color: #888;
             border: 1px solid #444;
             padding: 10px 20px;
             border-radius: 20px;
@@ -59,29 +66,33 @@
 </head>
 <body>
 
-    <div class="instruccions">Prem el Play per jugar</div>
+    <h2 style="margin-bottom: 20px; font-weight: 300;">Hitster Català</h2>
 
-    <div class="window">
-        <iframe 
-            id="player" 
-            src="" 
-            allow="autoplay; encrypted-media">
-        </iframe>
+    <div class="player-box">
+        <iframe id="reproductor" src="" allow="autoplay; encrypted-media"></iframe>
+        
+        <div class="mask">
+            <span>AUDIÈNCIA CEGA 🔒</span>
+        </div>
     </div>
 
-    <button class="btn-reveal" onclick="alert('Mira la carta per veure el resultat!')">REVELAR SOLUCIÓ</button>
+    <button class="btn-reveal" onclick="alert('L\'any és a la carta!')">REVELAR SOLUCIÓ</button>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const trackId = urlParams.get('id');
-        
-        if (trackId) {
-            // HEM CORREGIT AIXÒ: Ara l'ID es carrega correctament
-            const iframe = document.getElementById('player');
-            iframe.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+        // Obtenim l'ID de la URL
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if (id) {
+            // NETEGEM L'ID: Per si de cas poses "spotify:track:..." sencers
+            const cleanId = id.replace('spotify:track:', '');
+            
+            // URL OFICIAL DE SPOTIFY (CORREGIDA)
+            document.getElementById('reproductor').src = `https://open.spotify.com/embed/track/${cleanId}?utm_source=generator&theme=0`;
         } else {
             document.body.innerHTML = "<h1>Falta l'ID de la cançó!</h1>";
         }
     </script>
+
 </body>
 </html>
