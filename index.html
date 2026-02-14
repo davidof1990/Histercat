@@ -2,8 +2,8 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hitster Català 🎶</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hitster Català 🔒</title>
     <style>
         body {
             background-color: #121212;
@@ -18,107 +18,105 @@
             overflow: hidden;
         }
 
-        .container { text-align: center; width: 100%; }
+        .game-box {
+            text-align: center;
+            width: 100%;
+        }
 
-        /* EL CONTENIDOR DEL JOC */
+        /* EL CONTENIDOR DEL BOTÓ */
         .player-wrapper {
             position: relative;
-            width: 280px; /* Mida fixa per controlar el "forat" */
-            height: 80px;
-            margin: 20px auto;
-            border-radius: 40px;
-            overflow: hidden;
-            background: #282828;
+            width: 120px; /* Mida del botó */
+            height: 120px;
+            margin: 30px auto;
+            border-radius: 50%;
             border: 4px solid #1DB954;
+            overflow: hidden; /* Això talla l'Spotify sobrant */
+            background: #000;
         }
 
-        /* L'IFRAME REAL */
+        /* L'IFRAME: El fem gegant i el difuminem */
         iframe {
-            width: 100%;
-            height: 80px;
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 160px;
+            height: 160px;
+            /* TRUC 1: Difuminat i blanc i negre per no reconèixer colors ni formes */
+            filter: blur(20px) grayscale(100%);
+            opacity: 0.6;
             border: none;
+            z-index: 1;
         }
 
-        /* L'ESCUT (Això evita que toquis el títol o el logo) */
-        .shield {
+        /* TRUC 2: Capa a sobre que deixa passar el clic però tapa la vista */
+        .overlay-visual {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 20;
-            background: #282828; /* Tapem-ho tot de color gris */
+            background: rgba(0,0,0,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: auto; /* Bloqueja clics */
+            z-index: 5;
+            pointer-events: none; /* El clic "travessa" aquesta capa */
         }
 
-        /* EL FORAT (Això deixa passar el clic només al botó Play) */
-        .play-hole {
-            position: absolute;
-            left: 12px; /* Ajustat on sol estar el botó play a Spotify mòbil */
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            z-index: 30;
-            pointer-events: none; /* EL CLIC PASSA A TRAVÉS D'AQUÍ */
-            background: transparent;
-            /* Si vols veure on és el forat per provar, posa: border: 1px solid red; */
-        }
-
-        .mask-text {
+        .play-symbol {
+            font-size: 50px;
             color: #1DB954;
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin-left: 40px;
+            text-shadow: 0 0 10px rgba(0,0,0,1);
         }
 
         .btn-reveal {
             margin-top: 40px;
-            background: #1DB954;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            color: black;
-            font-weight: bold;
+            background: #282828;
+            border: 1px solid #1DB954;
+            color: #1DB954;
+            padding: 10px 20px;
+            border-radius: 20px;
             cursor: pointer;
         }
 
-        #solution { display: none; margin-top: 20px; font-weight: bold; color: #1DB954; }
+        #solucio {
+            display: none;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #1DB954;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Hitster Català</h1>
-        
-        <div id="game-view">
-            <p style="color:#888">Prem el cercle verd per reproduir:</p>
+    <div class="game-box">
+        <h2 style="margin-bottom: 5px;">Hitster Català</h2>
+        <p style="color: #888; font-size: 0.9rem;">Prem el botó central 🟢</p>
+
+        <div class="player-wrapper">
+            <iframe 
+                id="player" 
+                src="" 
+                sandbox="allow-forms allow-scripts allow-same-origin"
+                allow="autoplay; encrypted-media">
+            </iframe>
             
-            <div class="player-wrapper">
-                <iframe id="sp-player" src="" allow="autoplay; encrypted-media"></iframe>
-                
-                <div class="shield">
-                    <span class="mask-text">ESCOLTA LA CANÇÓ</span>
-                </div>
-
-                <div class="play-hole"></div>
+            <div class="overlay-visual">
+                <div class="play-symbol">▶</div>
             </div>
-
-            <button class="btn-reveal" onclick="document.getElementById('solution').style.display='block'">REVELAR SOLUCIÓ</button>
-            <div id="solution">🔍 L'any i l'artista són a la carta!</div>
         </div>
+
+        <button class="btn-reveal" onclick="document.getElementById('solucio').style.display='block'">MOSTRAR SOLUCIÓ</button>
+        <div id="solucio">🤔 L'any és a la carta!</div>
     </div>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-
-        if(id) {
-            const cleanId = id.replace('spotify:track:', '');
-            // Carreguem el reproductor
-            document.getElementById('sp-player').src = `https://open.spotify.com/embed/track/${cleanId}?utm_source=generator&theme=0`;
+        const urlParams = new URLSearchParams(window.location.search);
+        const trackId = urlParams.get('id');
+        if (trackId) {
+            // Fem servir el reproductor normal però "segrestat" pel nostre CSS
+            document.getElementById('player').src = `https://open.spotify.com/embed/track/${trackId}`;
         }
     </script>
 </body>
