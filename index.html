@@ -19,15 +19,18 @@
             overflow: hidden;
         }
 
+        /* LOGO NEÓ */
         .neon-logo {
             font-weight: bold;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             text-transform: uppercase;
             color: #fff;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f;
+            text-align: center;
         }
 
+        /* BOTÓ PLAY PRINCIPAL */
         .play-button {
             width: 120px;
             height: 120px;
@@ -39,73 +42,60 @@
             cursor: pointer;
             box-shadow: 0 0 30px rgba(250, 45, 72, 0.4);
             border: none;
+            margin: 20px 0;
         }
 
         .play-icon { width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent; border-left: 30px solid white; margin-left: 8px; }
         .stop-icon { width: 30px; height: 30px; background-color: white; border-radius: 4px; display: none; }
 
+        /* TARGETA DE SOLUCIÓ */
         #solution-card { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.8s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .album-art { width: 180px; height: 180px; border-radius: 10px; margin-bottom: 15px; }
-        .track-name { font-size: 1.4rem; font-weight: bold; text-align: center; }
-        .artist-name { font-size: 1.1rem; color: #fa2d48; margin-bottom: 10px; }
+        .album-art { width: 200px; height: 200px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .track-name { font-size: 1.5rem; font-weight: bold; text-align: center; padding: 0 20px; }
+        .artist-name { font-size: 1.2rem; color: #fa2d48; margin-bottom: 10px; }
 
+        /* BOTONS */
         .btn {
-            margin-top: 20px;
             background: rgba(255,255,255,0.1);
-            border: 1px solid #333;
-            color: #aaa;
-            padding: 12px 25px;
-            border-radius: 30px;
+            border: 1px solid #444;
+            color: #eee;
+            padding: 15px 30px;
+            border-radius: 40px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 0.7rem;
-            width: 220px;
+            font-size: 0.8rem;
+            width: 240px;
+            transition: all 0.3s;
+            margin-top: 20px;
         }
 
-        .btn-next { background-color: #fa2d48; color: white; border: none; margin-top: 15px; display: none; }
+        .btn:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
+        .btn-start { background-color: #fa2d48; border: none; font-size: 1rem; padding: 18px 40px; box-shadow: 0 5px 20px rgba(250, 45, 72, 0.3); color: white; }
+        .btn-next { background-color: #fa2d48; color: white; border: none; display: none; }
 
-        /* CONTENIDOR ESCÀNER AMB LÍNIA ANIMADA */
-        #reader-wrapper {
-            position: relative;
-            width: 320px;
-            display: none;
-        }
-
-        #reader { 
-            width: 100%; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            border: 2px solid #ff007f; 
-        }
-
-        /* Línia d'escaneig */
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #fa2d48;
-            box-shadow: 0 0 8px #fa2d48;
-            z-index: 10;
-            animation: scanning 2s linear infinite;
-        }
-
-        @keyframes scanning {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
-        }
+        /* ESCÀNER */
+        #reader-wrapper { position: relative; width: 320px; display: none; }
+        #reader { width: 100%; border-radius: 20px; overflow: hidden; border: 2px solid #ff007f; background: #000; }
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #fa2d48; box-shadow: 0 0 10px #fa2d48; z-index: 10; animation: scanning 2s linear infinite; }
+        @keyframes scanning { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
         
         .hidden { display: none !important; }
+        .subtext { color: #666; font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
+    <div id="landing-ui" style="display:none; flex-direction: column; align-items: center; text-align: center;">
+        <div class="neon-logo">HisterCAT</div>
+        <p style="color: #aaa; max-width: 250px; margin-bottom: 30px;">El joc de cartes musical en català</p>
+        <button class="btn btn-start" onclick="startScanner()">Començar a jugar!</button>
+        <p class="subtext">Prepara les teves cartes 🃏</p>
+    </div>
+
     <div id="game-ui" style="display:none; flex-direction: column; align-items: center;">
-        <div id="logo-header" class="neon-logo">HisterCAT</div>
+        <div id="logo-header" class="neon-logo" style="font-size: 1.8rem;">HisterCAT</div>
 
         <div id="solution-card">
             <img id="album-img" class="album-art" src="" alt="Album Art">
@@ -118,8 +108,8 @@
             <div class="stop-icon" id="icon-stop"></div>
         </button>
 
-        <button class="btn" id="reveal-btn" onclick="revealSolution()">REVELAR SOLUCIÓ</button>
-        <button class="btn btn-next" id="next-btn" onclick="startScanner()">SEGÜENT CANÇÓ 📷</button>
+        <button class="btn" id="reveal-btn" onclick="revealSolution()">Revelar solució</button>
+        <button class="btn btn-next" id="next-btn" onclick="startScanner()">Següent cançó 📷</button>
     </div>
 
     <div id="scanner-ui" style="display:none; flex-direction: column; align-items: center;">
@@ -128,7 +118,7 @@
             <div id="reader"></div>
             <div class="scan-line"></div>
         </div>
-        <button class="btn" onclick="location.reload()" style="margin-top: 30px;">TORNAR</button>
+        <button class="btn" onclick="location.reload()" style="margin-top: 30px; width: 150px;">Tornar</button>
     </div>
 
     <audio id="audio-player"></audio>
@@ -140,11 +130,12 @@
         let songData = null;
         let html5QrCode = null;
 
+        // LÒGICA INICIAL
         if (appleId) {
             document.getElementById('game-ui').style.display = 'flex';
             loadAppleSong(appleId);
         } else {
-            startScanner();
+            document.getElementById('landing-ui').style.display = 'flex';
         }
 
         async function loadAppleSong(id) {
@@ -180,6 +171,8 @@
         }
 
         function startScanner() {
+            // Amaguem tot l'altre i ensenyem l'escàner
+            document.getElementById('landing-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('scanner-ui').style.display = 'flex';
             document.getElementById('reader-wrapper').style.display = 'block';
@@ -191,9 +184,7 @@
             const config = { 
                 fps: 25, 
                 qrbox: { width: 250, height: 250 },
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true }
             };
 
             html5QrCode.start(
@@ -205,7 +196,8 @@
                     });
                 }
             ).catch(err => {
-                alert("Activa el permís de càmera per jugar!");
+                alert("Cal permís de càmera per escanejar les cartes!");
+                location.reload();
             });
         }
 
