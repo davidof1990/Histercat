@@ -19,7 +19,6 @@
             overflow: hidden;
         }
 
-        /* LOGO NEÓ ROSA */
         .neon-logo {
             font-weight: bold;
             font-size: 2.8rem;
@@ -30,7 +29,6 @@
             text-align: center;
         }
 
-        /* BOTÓ DE REPRODUCCIÓ */
         .play-button {
             width: 130px;
             height: 130px;
@@ -50,15 +48,25 @@
         .play-icon { width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-left: 40px solid white; margin-left: 10px; }
         .stop-icon { width: 40px; height: 40px; background-color: white; border-radius: 6px; display: none; }
 
-        /* TARGETA DE SOLUCIÓ */
         #solution-card { display: none; flex-direction: column; align-items: center; animation: fadeIn 0.6s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         
         .album-art { width: 220px; height: 220px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 10px 50px rgba(0,0,0,0.6); }
-        .track-name { font-size: 1.6rem; font-weight: bold; text-align: center; padding: 0 15px; line-height: 1.2; }
-        .artist-name { font-size: 1.2rem; color: #fa2d48; margin-bottom: 15px; }
+        .track-name { font-size: 1.6rem; font-weight: bold; text-align: center; padding: 0 15px; line-height: 1.2; margin-bottom: 5px; }
+        .artist-name { font-size: 1.2rem; color: #fa2d48; margin-bottom: 10px; }
 
-        /* BOTONS GENERALS */
+        /* ESTIL PER A L'ANY */
+        .year-badge {
+            background-color: white;
+            color: black;
+            font-weight: bold;
+            font-size: 1.4rem;
+            padding: 5px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
         .btn {
             background: rgba(255,255,255,0.1);
             border: 1px solid #444;
@@ -73,10 +81,9 @@
             margin-top: 15px;
         }
 
-        .btn-start { background-color: #fa2d48; border: none; font-size: 1.1rem; color: white; box-shadow: 0 5px 15px rgba(250,45,72,0.3); }
+        .btn-start { background-color: #fa2d48; border: none; font-size: 1.1rem; color: white; }
         .btn-next { background-color: #fa2d48; color: white; border: none; display: none; }
 
-        /* ESCÀNER QR */
         #reader-wrapper { position: relative; width: 320px; display: none; border: 3px solid #ff007f; border-radius: 20px; overflow: hidden; }
         #reader { width: 100%; background: #000; }
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #fa2d48; box-shadow: 0 0 15px #fa2d48; z-index: 10; animation: scanning 2s infinite; }
@@ -87,7 +94,6 @@
 
     <div id="landing-ui" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
         <div class="neon-logo">Sona bé!</div>
-        <p style="color: #888; margin-bottom: 40px;">El joc de cartes musical</p>
         <button class="btn btn-start" onclick="startScanner()">Començar a jugar!</button>
     </div>
 
@@ -96,6 +102,7 @@
         <div id="loader-text" style="color: #666; margin-bottom: 10px;">Preparant àudio...</div>
 
         <div id="solution-card">
+            <div id="song-year" class="year-badge"></div>
             <img id="album-img" class="album-art" src="" alt="Album Art">
             <div id="song-title" class="track-name"></div>
             <div id="song-artist" class="artist-name"></div>
@@ -124,7 +131,6 @@
         const audio = document.getElementById('audio-player');
         let songData = null;
 
-        // Gestió de l'estat inicial
         if (appleId) {
             document.getElementById('landing-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
@@ -133,7 +139,6 @@
 
         async function loadAppleSong(id) {
             try {
-                // Busquem la cançó a Apple Music (API iTunes)
                 const response = await fetch(`https://itunes.apple.com/lookup?id=${id}&country=es`);
                 const data = await response.json();
                 
@@ -142,31 +147,24 @@
                     if (songData.previewUrl) {
                         audio.src = songData.previewUrl;
                         document.getElementById('loader-text').innerText = "Àudio llest 🔒";
-                    } else {
-                        document.getElementById('loader-text').innerText = "Sense previsualització";
                     }
                     
-                    // Alta resolució per la caràtula
                     document.getElementById('album-img').src = songData.artworkUrl100.replace('100x100', '600x600');
                     document.getElementById('song-title').innerText = songData.trackName;
                     document.getElementById('song-artist').innerText = songData.artistName;
-                } else {
-                    document.getElementById('loader-text').innerText = "ID no trobat";
+                    
+                    // EXTRAIEM L'ANY (els 4 primers caràcters de releaseDate)
+                    const year = songData.releaseDate.substring(0, 4);
+                    document.getElementById('song-year').innerText = year;
+                    
                 }
-            } catch (e) {
-                document.getElementById('loader-text').innerText = "Error de connexió";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function togglePlay() {
             if (!audio.src) return;
-            if (audio.paused) {
-                audio.play();
-                updateUI(true);
-            } else {
-                audio.pause();
-                updateUI(false);
-            }
+            if (audio.paused) { audio.play(); updateUI(true); } 
+            else { audio.pause(); updateUI(false); }
         }
 
         function updateUI(isPlaying) {
@@ -188,18 +186,9 @@
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('scanner-ui').style.display = 'flex';
             document.getElementById('reader-wrapper').style.display = 'block';
-
             const html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 20, qrbox: 250 }, 
-                (text) => { 
-                    html5QrCode.stop().then(() => { window.location.href = text; }); 
-                }
-            ).catch(err => {
-                alert("Activa el permís de càmera!");
-                location.href='https://davidof1990.github.io/sonabe/';
-            });
+            html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, 
+            (text) => { html5QrCode.stop().then(() => { window.location.href = text; }); });
         }
         audio.onended = () => updateUI(false);
     </script>
