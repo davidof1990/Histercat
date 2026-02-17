@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HisterCAT 🎶</title>
+    <title>Sona bé! 🎶</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
@@ -88,14 +88,14 @@
 <body>
 
     <div id="landing-ui" style="display:none; flex-direction: column; align-items: center; text-align: center;">
-        <div class="neon-logo">HisterCAT</div>
+        <div class="neon-logo">Sona bé!</div>
         <p style="color: #aaa; max-width: 250px; margin-bottom: 30px;">El joc de cartes musical en català</p>
         <button class="btn btn-start" onclick="startScanner()">Començar a jugar!</button>
         <p class="subtext">Prepara les teves cartes 🃏</p>
     </div>
 
     <div id="game-ui" style="display:none; flex-direction: column; align-items: center;">
-        <div id="logo-header" class="neon-logo" style="font-size: 1.8rem;">HisterCAT</div>
+        <div id="logo-header" class="neon-logo" style="font-size: 1.8rem;">Sona bé!</div>
 
         <div id="solution-card">
             <img id="album-img" class="album-art" src="" alt="Album Art">
@@ -120,88 +120,3 @@
         </div>
         <button class="btn" onclick="location.reload()" style="margin-top: 30px; width: 150px;">Tornar</button>
     </div>
-
-    <audio id="audio-player"></audio>
-
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const appleId = params.get('id'); 
-        const audio = document.getElementById('audio-player');
-        let songData = null;
-        let html5QrCode = null;
-
-        // LÒGICA INICIAL
-        if (appleId) {
-            document.getElementById('game-ui').style.display = 'flex';
-            loadAppleSong(appleId);
-        } else {
-            document.getElementById('landing-ui').style.display = 'flex';
-        }
-
-        async function loadAppleSong(id) {
-            try {
-                const response = await fetch(`https://itunes.apple.com/lookup?id=${id}`);
-                const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    songData = data.results[0];
-                    audio.src = songData.previewUrl;
-                    document.getElementById('album-img').src = songData.artworkUrl100.replace('100x100', '600x600');
-                    document.getElementById('song-title').innerText = songData.trackName;
-                    document.getElementById('song-artist').innerText = songData.artistName;
-                }
-            } catch (e) { console.error("Error carregant cançó"); }
-        }
-
-        function togglePlay() {
-            if (audio.paused) { audio.play(); updateUI(true); } 
-            else { audio.pause(); updateUI(false); }
-        }
-
-        function updateUI(isPlaying) {
-            document.getElementById('icon-play').style.display = isPlaying ? 'none' : 'block';
-            document.getElementById('icon-stop').style.display = isPlaying ? 'block' : 'none';
-        }
-
-        function revealSolution() {
-            if (!songData) return;
-            document.getElementById('logo-header').classList.add('hidden');
-            document.getElementById('reveal-btn').classList.add('hidden');
-            document.getElementById('solution-card').style.display = 'flex';
-            document.getElementById('next-btn').style.display = 'block';
-        }
-
-        function startScanner() {
-            // Amaguem tot l'altre i ensenyem l'escàner
-            document.getElementById('landing-ui').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'none';
-            document.getElementById('scanner-ui').style.display = 'flex';
-            document.getElementById('reader-wrapper').style.display = 'block';
-
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
-            }
-
-            const config = { 
-                fps: 25, 
-                qrbox: { width: 250, height: 250 },
-                experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-            };
-
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                (decodedText) => {
-                    html5QrCode.stop().then(() => {
-                        window.location.href = decodedText;
-                    });
-                }
-            ).catch(err => {
-                alert("Cal permís de càmera per escanejar les cartes!");
-                location.reload();
-            });
-        }
-
-        audio.onended = () => updateUI(false);
-    </script>
-</body>
-</html>
