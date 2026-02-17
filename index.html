@@ -20,43 +20,21 @@
         }
 
         .neon-logo {
-            font-weight: bold;
-            font-size: 2.8rem;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f;
+            font-weight: bold; font-size: 2.8rem; text-transform: uppercase; color: #fff;
+            margin-bottom: 20px; text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f;
             text-align: center;
-            transition: all 0.1s ease;
         }
 
         @keyframes flickering {
-            0%, 18%, 22%, 25%, 53%, 57%, 100% {
-                text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
-                opacity: 1;
-            }
-            20%, 24%, 55% {
-                text-shadow: none;
-                opacity: 0.5;
-            }
+            0%, 18%, 22%, 25%, 53%, 57%, 100% { text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f; opacity: 1; }
+            20%, 24%, 55% { text-shadow: none; opacity: 0.5; }
         }
-
-        .flickering-on {
-            animation: flickering 2s infinite alternate-reverse;
-        }
+        .flickering-on { animation: flickering 2s infinite alternate-reverse; }
 
         .play-button {
-            width: 130px;
-            height: 130px;
-            background-color: #fa2d48;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(250, 45, 72, 0.5);
-            border: none;
-            margin: 20px 0;
+            width: 130px; height: 130px; background-color: #fa2d48; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 0 30px rgba(250, 45, 72, 0.5); border: none; margin: 20px 0;
         }
 
         .play-icon { width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-left: 40px solid white; margin-left: 10px; }
@@ -66,36 +44,21 @@
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         
         .album-art { width: 220px; height: 220px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 10px 50px rgba(0,0,0,0.6); }
-        .track-name { font-size: 1.6rem; font-weight: bold; text-align: center; padding: 0 15px; line-height: 1.2; margin-bottom: 5px; }
-        .artist-name { font-size: 1.2rem; color: #fa2d48; margin-bottom: 10px; }
+        .track-name { font-size: 1.6rem; font-weight: bold; text-align: center; padding: 0 15px; line-height: 1.2; }
+        .artist-name { font-size: 1.2rem; color: #fa2d48; margin-bottom: 15px; }
 
-        /* ESTIL DE L'ANY */
+        /* ESTIL DE L'ANY (BADGE) */
         .year-badge {
-            background-color: white;
-            color: black;
-            font-weight: bold;
-            font-size: 2rem;
-            padding: 5px 30px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 0 25px rgba(255,255,255,0.5);
-            display: inline-block;
+            background-color: white; color: black; font-weight: 900; font-size: 2.2rem;
+            padding: 5px 35px; border-radius: 15px; margin-bottom: 15px;
+            box-shadow: 0 0 30px rgba(255,255,255,0.6);
         }
 
         .btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #444;
-            color: #eee;
-            padding: 15px 30px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            width: 250px;
-            margin-top: 15px;
+            background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee;
+            padding: 15px 30px; border-radius: 40px; cursor: pointer; font-weight: bold;
+            text-transform: uppercase; font-size: 0.8rem; width: 250px; margin-top: 15px;
         }
-
         .btn-start { background-color: #fa2d48; border: none; font-size: 1.1rem; color: white; }
         .btn-next { background-color: #fa2d48; color: white; border: none; display: none; }
 
@@ -133,7 +96,7 @@
     </div>
 
     <div id="scanner-ui" style="display: none; flex-direction: column; align-items: center;">
-        <div class="neon-logo" style="font-size: 1.2rem; margin-bottom: 20px;">Escaneja el QR</div>
+        <div class="neon-logo" style="font-size: 1.2rem;">Escaneja el QR</div>
         <div id="reader-wrapper"><div id="reader"></div><div class="scan-line"></div></div>
         <button class="btn" onclick="location.href='https://davidof1990.github.io/sonabe/'">Tornar</button>
     </div>
@@ -143,13 +106,19 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const appleId = params.get('id'); 
-        const manualYear = params.get('y'); 
+        const manualYear = params.get('y'); // Any de la carta
         const audio = document.getElementById('audio-player');
         let songData = null;
 
         if (appleId) {
             document.getElementById('landing-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
+            
+            // PRIORITAT 1: Si tenim any manual a la URL, el posem JA MATEIX
+            if (manualYear) {
+                document.getElementById('song-year').innerText = manualYear;
+            }
+            
             loadAppleSong(appleId);
         }
 
@@ -160,25 +129,21 @@
                 
                 if (data.results && data.results.length > 0) {
                     songData = data.results[0];
-                    if (songData.previewUrl) { audio.src = songData.previewUrl; document.getElementById('loader-text').innerText = "Àudio llest 🔒"; }
+                    if (songData.previewUrl) { 
+                        audio.src = songData.previewUrl; 
+                        document.getElementById('loader-text').innerText = "Àudio llest 🔒"; 
+                    }
                     
                     document.getElementById('album-img').src = songData.artworkUrl100.replace('100x100', '600x600');
                     document.getElementById('song-title').innerText = songData.trackName;
                     document.getElementById('song-artist').innerText = songData.artistName;
                     
-                    // --- LÒGICA DE L'ANY MILLORADA ---
-                    let yearToShow = "----";
-                    
-                    if (manualYear && manualYear !== "") {
-                        yearToShow = manualYear;
-                    } else if (songData.releaseDate) {
-                        yearToShow = songData.releaseDate.substring(0, 4);
+                    // PRIORITAT 2: Si NO teníem any manual, agafem el d'Apple com a "Pla B"
+                    if (!manualYear && songData.releaseDate) {
+                        document.getElementById('song-year').innerText = songData.releaseDate.substring(0, 4);
                     }
-                    
-                    document.getElementById('song-year').innerText = yearToShow;
-                    // ---------------------------------
                 }
-            } catch (e) { console.error("Error carregant dades:", e); }
+            } catch (e) { console.error("Error xarxa:", e); }
         }
 
         function togglePlay() {
