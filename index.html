@@ -20,8 +20,8 @@
         }
 
         .neon-logo {
-            font-weight: bold; font-size: 2.8rem; text-transform: uppercase; color: #fff;
-            margin-bottom: 20px; text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f;
+            font-weight: bold; font-size: 3.2rem; text-transform: uppercase; color: #fff;
+            margin-bottom: 30px; text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f;
             text-align: center;
         }
 
@@ -30,6 +30,21 @@
             20%, 24%, 55% { text-shadow: none; opacity: 0.5; }
         }
         .flickering-on { animation: flickering 2s infinite alternate-reverse; }
+
+        .btn {
+            background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee;
+            padding: 18px 30px; border-radius: 40px; cursor: pointer; font-weight: bold;
+            text-transform: uppercase; font-size: 0.9rem; width: 280px; margin-top: 15px;
+            text-align: center; display: block; transition: all 0.2s;
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        /* Estil Botó A: Escanejar */
+        .btn-a { background-color: #fa2d48; border: none; font-size: 1rem; color: white; box-shadow: 0 0 20px rgba(250, 45, 72, 0.4); }
+        
+        /* Estil Botó B: Online */
+        .btn-b { background-color: transparent; border: 2px solid #fa2d48; color: #fa2d48; }
 
         .play-button {
             width: 130px; height: 130px; background-color: #fa2d48; border-radius: 50%;
@@ -53,15 +68,6 @@
             box-shadow: 0 0 30px rgba(255,255,255,0.6);
         }
 
-        .btn {
-            background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee;
-            padding: 15px 30px; border-radius: 40px; cursor: pointer; font-weight: bold;
-            text-transform: uppercase; font-size: 0.8rem; width: 250px; margin-top: 15px;
-            text-align: center;
-            display: block;
-        }
-        .btn-start { background-color: #fa2d48; border: none; font-size: 1.1rem; color: white; }
-        .btn-random { background-color: transparent; border: 2px solid #fa2d48; color: #fa2d48; }
         .btn-next { background-color: #fa2d48; color: white; border: none; display: none; }
 
         #reader-wrapper { position: relative; width: 320px; display: none; border: 3px solid #ff007f; border-radius: 20px; overflow: hidden; }
@@ -69,15 +75,18 @@
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #fa2d48; box-shadow: 0 0 15px #fa2d48; z-index: 10; animation: scanning 2s infinite; }
         @keyframes scanning { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         
-        #random-status { font-size: 0.7rem; color: #666; margin-top: 10px; text-transform: uppercase; }
+        #random-status { font-size: 0.7rem; color: #fa2d48; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div id="landing-ui" style="display: flex; flex-direction: column; align-items: center;">
         <div class="neon-logo flickering-on">Sonabé!</div>
-        <button class="btn btn-start" onclick="startScanner()">Escanejar BIDI 📷</button>
-        <button class="btn btn-random" onclick="jugarAleatori()">🎲 Mode Aleatori</button>
+        
+        <button class="btn btn-a" onclick="startScanner()">Tinc les meves cartes 📷</button>
+        
+        <button class="btn btn-b" onclick="jugarAleatori()">Jugar online 🎲</button>
+        
         <div id="random-status"></div>
     </div>
 
@@ -116,6 +125,7 @@
         const audio = document.getElementById('audio-player');
         let songData = null;
 
+        // Si hi ha ID, carregar joc
         if (appleId) {
             document.getElementById('landing-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
@@ -143,11 +153,12 @@
             } catch (e) { console.error(e); }
         }
 
+        // Lògica Jugar Online (Google Sheets)
         async function jugarAleatori() {
             const status = document.getElementById('random-status');
             const urlSheet = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKbhu-nwl5Mrq1-_WiGPQyiflqbb3a5C9BRTTDWgwMNqTur9_8GBODKlJC9-OHol7EhIzap9Yv_lF/pub?output=csv";
             
-            status.innerText = "TRIANT CANÇÓ...";
+            status.innerText = "TRIANT CANÇÓ ONLINE...";
             
             try {
                 const resp = await fetch(urlSheet);
@@ -159,7 +170,7 @@
                     const cols = fila.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     let link = cols[6] ? cols[6].replace(/"/g, "").trim() : "";
                     
-                    // CORRECCIÓ AUTOMÀTICA DE MAJÚSCULA: Forcem la 'S' majúscula en qualsevol cas
+                    // Seguretat per la S majúscula de Sonabe
                     if (link.toLowerCase().includes("davidof1990.github.io/sonabe")) {
                         link = link.replace(/sonabe/i, "Sonabe");
                     }
@@ -171,7 +182,7 @@
                     const finalLink = urls[Math.floor(Math.random() * urls.length)];
                     window.location.href = finalLink;
                 } else {
-                    status.innerText = "NO HI HA URLS AL FULL";
+                    status.innerText = "CAP CANÇÓ DISPONIBLE";
                 }
             } catch (e) {
                 status.innerText = "ERROR DE CONNEXIÓ";
@@ -209,7 +220,6 @@
             const html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, 
             (text) => { html5QrCode.stop().then(() => { 
-                // CORRECCIÓ DE MAJÚSCULA TAMBÉ PER A L'ESCÀNER
                 const fixedUrl = text.replace(/sonabe/i, "Sonabe");
                 window.location.href = fixedUrl; 
             }); });
