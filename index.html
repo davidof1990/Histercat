@@ -40,8 +40,6 @@
         }
 
         .btn:active { transform: scale(0.95); }
-
-        /* Estils de botons */
         .btn-primary { background-color: #fa2d48; border: none; color: white; box-shadow: 0 0 20px rgba(250, 45, 72, 0.4); }
         .btn-outline { background-color: transparent; border: 2px solid #fa2d48; color: #fa2d48; }
         .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #666; color: #ccc; }
@@ -73,7 +71,7 @@
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #fa2d48; box-shadow: 0 0 15px #fa2d48; z-index: 10; animation: scanning 2s infinite; }
         @keyframes scanning { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         
-        #random-status { font-size: 0.7rem; color: #fa2d48; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        #status-msg { font-size: 0.7rem; color: #fa2d48; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; min-height: 1.2em;}
     </style>
 </head>
 <body>
@@ -82,7 +80,7 @@
         <div class="neon-logo flickering-on">Sonabé!</div>
         <button class="btn btn-primary" onclick="startScanner()">Tinc les meves cartes 📷</button>
         <button class="btn btn-outline" onclick="jugarAleatori()">Jugar online 🎲</button>
-        <div id="random-status"></div>
+        <div id="status-msg"></div>
     </div>
 
     <div id="game-ui" style="display: none; flex-direction: column; align-items: center;">
@@ -104,7 +102,7 @@
         <button class="btn btn-primary" id="reveal-btn" onclick="revealSolution()">Revelar solució</button>
         
         <div id="post-solution-btns" style="display: none;">
-            <button class="btn btn-primary" onclick="startScanner()">Següent cançó 📷</button>
+            <button class="btn btn-primary" onclick="proximaAccio()">Següent cançó</button>
             <button class="btn btn-secondary" onclick="window.location.href='index.html'">Tornar al menú</button>
         </div>
     </div>
@@ -121,6 +119,7 @@
         const params = new URLSearchParams(window.location.search);
         const appleId = params.get('id'); 
         const manualYear = params.get('y'); 
+        const isRandomMode = params.get('mode') === 'rand'; // Detectem si venim del mode online
         const audio = document.getElementById('audio-player');
         let songData = null;
 
@@ -151,10 +150,13 @@
             } catch (e) { console.error(e); }
         }
 
+        // LÒGICA PER AL MODE ONLINE (ALEATORI)
         async function jugarAleatori() {
-            const status = document.getElementById('random-status');
+            const status = document.getElementById('status-msg');
             const urlSheet = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKbhu-nwl5Mrq1-_WiGPQyiflqbb3a5C9BRTTDWgwMNqTur9_8GBODKlJC9-OHol7EhIzap9Yv_lF/pub?output=csv";
-            status.innerText = "TRIANT CANÇÓ ONLINE...";
+            
+            if (status) status.innerText = "TRIANT CANÇÓ ONLINE...";
+            
             try {
                 const resp = await fetch(urlSheet);
                 const text = await resp.text();
@@ -164,18 +166,32 @@
                     const cols = fila.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     let link = cols[6] ? cols[6].replace(/"/g, "").trim() : "";
                     
-                    // CORRECCIÓ SONABE -> Sonabe (Case Sensitive GitHub Fix)
                     if (link.toLowerCase().includes("davidof1990.github.io/sonabe")) {
                         link = link.replace(/sonabe/i, "Sonabe");
                     }
                     if (link.includes("http")) urls.push(link);
                 });
+
                 if (urls.length > 0) {
-                    window.location.href = urls[Math.floor(Math.random() * urls.length)];
-                } else {
-                    status.innerText = "ERROR AL CATÀLEG";
+                    let finalLink = urls[Math.floor(Math.random() * urls.length)];
+                    // Afegim el paràmetre mode=rand per saber que seguim en mode online
+                    const separator = finalLink.includes('?') ? '&' : '?';
+                    window.location.href = finalLink + separator + "mode=rand";
                 }
-            } catch (e) { status.innerText = "ERROR DE CONNEXIÓ"; }
+            } catch (e) { 
+                if (status) status.innerText = "ERROR DE CONNEXIÓ"; 
+            }
+        }
+
+        // DETERMINA QUÈ FA EL BOTÓ "SEGÜENT CANÇÓ"
+        function proximaAccio() {
+            if (isRandomMode) {
+                // Si estàvem jugant online, busquem una altra cançó directament
+                jugarAleatori();
+            } else {
+                // Si estàvem amb cartes, obrim l'escàner
+                startScanner();
+            }
         }
 
         function togglePlay() {
@@ -202,7 +218,7 @@
         }
 
         function startScanner() {
-            // Netegem la URL actual per si venim d'una cançó
+            // Netegem la URL per si hi havia paràmetres de cançó anterior
             if (window.location.search) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -214,7 +230,6 @@
             html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, 
             (text) => { 
                 html5QrCode.stop().then(() => { 
-                    // CORRECCIÓ SONABE -> Sonabe (Case Sensitive GitHub Fix)
                     const fixedUrl = text.replace(/sonabe/i, "Sonabe");
                     window.location.href = fixedUrl; 
                 }); 
