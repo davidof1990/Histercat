@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonabé! 🎶 - Versió 51</title>
+    <title>Sonabé! 🎶 - Versió 54</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --primary: #fa2d48; --neon: #ff007f; --bg: #121212; }
@@ -73,7 +73,6 @@
             <div class="play-icon" id="icon-play"></div>
             <div class="stop-icon" id="icon-stop"></div>
         </button>
-
         <div id="ui-online-mode" class="btn-list" style="display:none;">
             <div id="ui-exact" class="btn-list" style="display:none;">
                 <p>Quin any es va publicar?</p>
@@ -85,11 +84,9 @@
                 <div id="timeline-slots" class="timeline" style="justify-content: center;"></div>
             </div>
         </div>
-
         <div id="ui-cards-mode" class="btn-list" style="display:none;">
             <button class="btn btn-primary" style="margin-top:20px;" onclick="revealSolutionSolo()">REVELAR SOLUCIÓ</button>
         </div>
-
         <div id="solution-card">
             <div id="guess-result" style="font-weight: bold; font-size: 1.4rem;"></div>
             <div id="song-year" class="year-badge">----</div>
@@ -112,14 +109,14 @@
         const params = new URLSearchParams(window.location.search);
         const appleId = params.get('id');
 
-        // MEMÒRIA v51
+        // MEMÒRIA v54
         let gameState = { players: [], currentTurn: 0, mode: 'timeline', playedIds: [], winCondition: 5 };
 
         function load() {
-            const saved = localStorage.getItem('sonabe_v51');
+            const saved = localStorage.getItem('sonabe_v54');
             if (saved) gameState = JSON.parse(saved);
         }
-        function save() { localStorage.setItem('sonabe_v51', JSON.stringify(gameState)); }
+        function save() { localStorage.setItem('sonabe_v54', JSON.stringify(gameState)); }
 
         load();
 
@@ -135,13 +132,11 @@
         function renderGameUI() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('game-screen').classList.add('active');
-            
             if (gameState.players.length > 0) {
                 const actual = gameState.players[gameState.currentTurn];
                 document.getElementById('ui-online-mode').style.display = 'block';
                 document.getElementById('ui-cards-mode').style.display = 'none';
                 document.getElementById('turn-indicator').innerText = `TORN DE: ${actual.name.toUpperCase()}`;
-                
                 if (gameState.mode === 'timeline') {
                     document.getElementById('ui-timeline').style.display = 'flex';
                     document.getElementById('ui-exact').style.display = 'none';
@@ -158,7 +153,6 @@
             }
         }
 
-        // SETUP
         function openSetup() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('setup-screen').classList.add('active');
@@ -174,22 +168,24 @@
                 save(); updateSetupList(); renderBoards();
             }
         }
-
         function deletePlayer(i) { gameState.players.splice(i, 1); save(); updateSetupList(); renderBoards(); }
 
         function updateSetupList() {
             const list = document.getElementById('player-list-setup');
             list.innerHTML = gameState.players.map((p, i) => `<div class="player-item"><span>👤 ${p.name.toUpperCase()}</span><span class="del-btn" onclick="deletePlayer(${i})">✕</span></div>`).join('');
             document.getElementById('config-area').style.display = (gameState.players.length > 0) ? 'block' : 'none';
+            document.getElementById('win-input').value = gameState.winCondition; // Mostrar valor guardat
             setMode(gameState.mode);
         }
 
-        function setMode(m) {
-            gameState.mode = m;
-            document.getElementById('mode-timeline').className = (m === 'timeline') ? 'btn mode-selected' : 'btn btn-outline';
-            document.getElementById('mode-exact').className = (m === 'exact') ? 'btn mode-selected' : 'btn btn-outline';
+        // FUNCIO RECUPERADA: Actualitzar cartes per guanyar
+        function updateWinCondition() {
+            gameState.winCondition = parseInt(document.getElementById('win-input').value) || 5;
             save();
+            renderBoards();
         }
+
+        function setMode(m) { gameState.mode = m; document.getElementById('mode-timeline').className = (m === 'timeline') ? 'btn mode-selected' : 'btn btn-outline'; document.getElementById('mode-exact').className = (m === 'exact') ? 'btn mode-selected' : 'btn btn-outline'; save(); }
 
         function renderBoards() {
             const container = document.getElementById('all-boards');
@@ -209,7 +205,6 @@
             sorted.forEach((y, i) => { container.innerHTML += `<div class="year-card">${y}</div>`; container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(${i})">${(i === sorted.length-1) ? "NOU" : "ENTRE"}</button>`; });
         }
 
-        // LOGICA REPRODUCTOR
         async function loadSong(id) {
             try {
                 const r = await fetch(`https://itunes.apple.com/lookup?id=${id}&country=es`);
@@ -253,17 +248,8 @@
             } else { startScanner(); }
         }
 
-        // REINICI TOTAL CORREGIT
-        function resetGame() { 
-            if(confirm("Segur que vols reiniciar-ho tot de zero?")) { 
-                localStorage.removeItem('sonabe_v51'); 
-                gameState = { players: [], currentTurn: 0, mode: 'timeline', playedIds: [], winCondition: 5 };
-                // Neteja la URL (per si hi ha paràmetres com ?id=...) i recarrega
-                window.location.href = window.location.origin + window.location.pathname; 
-            } 
-        }
-
-        function goToMenu() { window.location.href = window.location.origin + window.location.pathname; }
+        function resetGame() { if(confirm("Segur que vols reiniciar-ho tot?")) { localStorage.removeItem('sonabe_v54'); goToMenu(); } }
+        function goToMenu() { window.location.href = window.location.pathname; }
         function startScanner() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('scanner-screen').classList.add('active'); const q = new Html5Qrcode("reader"); q.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { q.stop().then(() => { window.location.href = t; }); }); }
         async function jugarAleatori() {
             save();
