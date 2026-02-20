@@ -21,6 +21,7 @@
             margin-bottom: 20px;
         }
 
+        /* Pantalles i Contenidors */
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; gap: 20px; }
         .active { display: flex; }
 
@@ -36,7 +37,7 @@
         .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #666; color: #ccc; font-size: 0.7rem; width: 180px; }
 
-        /* Indicador de Torn */
+        /* Joc */
         #turn-indicator { 
             background: var(--primary); color: white; padding: 15px; border-radius: 12px; 
             font-weight: 900; width: 100%; margin-bottom: 10px; font-size: 1.3rem;
@@ -51,14 +52,13 @@
         .play-icon { width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent; border-left: 30px solid white; margin-left: 8px; }
         .stop-icon { width: 35px; height: 35px; background-color: white; border-radius: 6px; display: none; }
 
-        /* Solució i Album Art */
         #solution-card { display: none; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
         .album-art { width: 180px; height: 180px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
         .year-badge { background: white; color: black; font-weight: 900; font-size: 2.2rem; padding: 5px 30px; border-radius: 15px; }
 
-        /* Tauler Hitster */
+        /* Tauler Hitster (Visibilitat millorada) */
         .board-container { width: 100%; max-width: 380px; margin-top: 25px; border-top: 1px solid #333; padding-top: 20px; }
-        .player-row { background: #1e1e1e; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; }
+        .player-row { background: #1e1e1e; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; transition: 0.3s; }
         .active-player-row { border: 2px solid white; box-shadow: 0 0 15px var(--primary); background: #252525; }
         .timeline { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
         .year-card { background: white; color: black; font-size: 0.8rem; font-weight: bold; padding: 3px 10px; border-radius: 5px; }
@@ -80,6 +80,7 @@
             <button class="btn btn-outline" onclick="showSetup()">Jugar online 🎲</button>
             <button class="btn btn-secondary" onclick="resetGame()">Reiniciar Partida</button>
         </div>
+        <div id="status-msg" style="font-size: 0.7rem; color: var(--primary); margin-top: 10px;"></div>
     </div>
 
     <div id="setup-screen" class="screen">
@@ -87,7 +88,7 @@
         <input type="text" id="player-input" placeholder="Escriu un nom...">
         <div class="btn-list">
             <button class="btn btn-primary" onclick="addPlayer()">Afegir</button>
-            <div id="player-list-setup" style="margin: 10px 0; font-size: 1rem; color: var(--neon);"></div>
+            <div id="player-list-setup" style="margin: 10px 0; font-size: 1rem; color: var(--neon); min-height: 20px;"></div>
             <button id="start-game-btn" class="btn btn-outline" style="display:none;" onclick="jugarAleatori()">Començar Joc</button>
             <button class="btn btn-secondary" onclick="goToMenu()">Tornar</button>
         </div>
@@ -105,7 +106,7 @@
             <p>Quin any es va publicar?</p>
             <input type="number" id="year-guess" placeholder="Any" pattern="\d*">
             <button class="btn btn-primary" style="margin-top: 15px;" onclick="checkGuess()">Endevinar</button>
-            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goToMenu()">Menu</button>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="goToMenu()">Menu Principal</button>
         </div>
 
         <div id="solution-card">
@@ -117,7 +118,7 @@
             
             <div class="btn-list" style="margin-top: 10px;">
                 <button class="btn btn-primary" onclick="nextTurn()">Següent Cançó</button>
-                <button class="btn btn-secondary" onclick="goToMenu()">Menú</button>
+                <button class="btn btn-secondary" onclick="goToMenu()">Menú Principal</button>
             </div>
         </div>
     </div>
@@ -138,18 +139,18 @@
         const appleId = params.get('id');
         const isRandom = params.get('mode') === 'rand';
 
-        // LÒGICA DE MEMÒRIA (v13)
+        // LÒGICA DE MEMÒRIA (v14)
         let gameState = { players: [], currentTurn: 0 };
         
         function loadGame() {
-            const saved = localStorage.getItem('sonabe_v13');
+            const saved = localStorage.getItem('sonabe_v14');
             if (saved) {
                 gameState = JSON.parse(saved);
             }
         }
 
         function saveGame() {
-            localStorage.setItem('sonabe_v13', JSON.stringify(gameState));
+            localStorage.setItem('sonabe_v14', JSON.stringify(gameState));
         }
 
         window.onload = () => {
@@ -158,7 +159,12 @@
             if (appleId) {
                 switchScreen('game-screen');
                 loadSong(appleId);
-            } else if (gameState.players.length > 0) {
+            } else {
+                switchScreen('landing-screen');
+            }
+            
+            // Si hi ha jugadors, mostrem el tauler sempre a sota
+            if (gameState.players.length > 0) {
                 document.getElementById('all-boards').style.display = 'block';
                 renderBoards();
             }
@@ -169,15 +175,23 @@
             document.getElementById(id).classList.add('active');
             
             if (gameState.players.length > 0) {
-                document.getElementById('all-boards').style.display = 'block';
+                updateTurnText();
                 renderBoards();
-                
-                // CORREGIT: Ara busquem l'ID correcte (turn-indicator)
-                const actual = gameState.players[gameState.currentTurn];
-                if (actual) {
-                    document.getElementById('turn-indicator').innerText = `TORN DE: ${actual.name.toUpperCase()}`;
-                }
             }
+        }
+
+        function updateTurnText() {
+            const actual = gameState.players[gameState.currentTurn];
+            const indicator = document.getElementById('turn-indicator');
+            if (actual && indicator) {
+                indicator.innerText = `TORN DE: ${actual.name.toUpperCase()}`;
+            }
+        }
+
+        function showSetup() {
+            // Netegem la pantalla actual i anem a setup
+            switchScreen('setup-screen');
+            updateSetupList();
         }
 
         function addPlayer() {
@@ -196,11 +210,14 @@
         function updateSetupList() {
             const list = document.getElementById('player-list-setup');
             list.innerHTML = gameState.players.map(p => `<div>👤 ${p.name.toUpperCase()}</div>`).join('');
-            if (gameState.players.length > 0) document.getElementById('start-game-btn').style.display = 'block';
+            if (gameState.players.length > 0) {
+                document.getElementById('start-game-btn').style.display = 'block';
+            }
         }
 
         function renderBoards() {
             const container = document.getElementById('all-boards');
+            if (!container) return;
             container.innerHTML = "<h3>Línies del temps</h3>";
             gameState.players.forEach((p, i) => {
                 const isTurn = (i === gameState.currentTurn && appleId);
@@ -274,7 +291,10 @@
             } catch (e) { alert("Error de connexió"); }
         }
 
-        function goToMenu() { window.location.href = window.location.pathname; }
+        function goToMenu() { 
+            window.location.href = window.location.pathname; 
+        }
+
         function startScanner() {
             switchScreen('scanner-screen');
             const qrcode = new Html5Qrcode("reader");
@@ -282,10 +302,24 @@
                 qrcode.stop().then(() => { window.location.href = text; });
             });
         }
-        function resetGame() { if(confirm("Esborrar la partida actual?")) { localStorage.removeItem('sonabe_v13'); goToMenu(); } }
+        
+        function resetGame() { 
+            if(confirm("Vols esborrar la partida actual?")) { 
+                localStorage.removeItem('sonabe_v14'); 
+                goToMenu(); 
+            } 
+        }
+
         function togglePlay() {
-            if (audio.paused) { audio.play(); document.getElementById('icon-play').style.display='none'; document.getElementById('icon-stop').style.display='block'; }
-            else { audio.pause(); document.getElementById('icon-play').style.display='block'; document.getElementById('icon-stop').style.display='none'; }
+            if (audio.paused) { 
+                audio.play(); 
+                document.getElementById('icon-play').style.display='none'; 
+                document.getElementById('icon-stop').style.display='block'; 
+            } else { 
+                audio.pause(); 
+                document.getElementById('icon-play').style.display='block'; 
+                document.getElementById('icon-stop').style.display='none'; 
+            }
         }
     </script>
 </body>
