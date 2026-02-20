@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonabé! 🎶 - Versió 42</title>
+    <title>Sonabé! 🎶 - Versió 44</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --primary: #fa2d48; --neon: #ff007f; --bg: #121212; }
@@ -15,27 +15,19 @@
             margin: 0; padding: 20px; box-sizing: border-box; text-align: center;
         }
 
-        .neon-logo {
-            font-weight: bold; font-size: 3rem; text-transform: uppercase; color: #fff;
-            text-shadow: 0 0 10px #fff, 0 0 20px var(--neon); margin-bottom: 20px;
-        }
-
+        .neon-logo { font-weight: bold; font-size: 3rem; text-transform: uppercase; color: #fff; text-shadow: 0 0 10px #fff, 0 0 20px var(--neon); margin-bottom: 20px; }
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; gap: 15px; }
         .active { display: flex; }
 
         /* Botons */
         .btn-list { display: flex; flex-direction: column; gap: 10px; width: 100%; align-items: center; }
-        .btn {
-            background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee;
-            padding: 16px 25px; border-radius: 40px; cursor: pointer; font-weight: bold;
-            text-transform: uppercase; font-size: 0.85rem; width: 280px; transition: 0.2s;
-        }
+        .btn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee; padding: 16px 25px; border-radius: 40px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; width: 280px; transition: 0.2s; }
         .btn-primary { background-color: var(--primary); border: none; color: white; box-shadow: 0 0 15px var(--primary); }
         .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .mode-selected { border-color: var(--neon) !important; color: white !important; background: rgba(255, 0, 127, 0.5) !important; box-shadow: 0 0 15px var(--neon); }
+        .mode-selected { border-color: var(--neon) !important; color: white !important; background: rgba(255, 0, 127, 0.4) !important; box-shadow: 0 0 15px var(--neon); }
         .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #666; color: #ccc; font-size: 0.75rem; width: 180px; margin-top: 10px; }
 
-        /* Setup */
+        /* Llista Jugadors */
         .player-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; width: 280px; margin-bottom: 8px; border: 1px solid #444; }
         .del-btn { color: var(--primary); font-weight: bold; cursor: pointer; font-size: 1.4rem; padding: 0 10px; }
 
@@ -47,10 +39,10 @@
         
         #solution-card { display: none; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
         .album-art { width: 160px; height: 160px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .year-badge { background: white; color: black; font-weight: 900; font-size: 2rem; padding: 5px 25px; border-radius: 10px; }
+        .year-badge { background: white; color: black; font-weight: 900; font-size: 2.5rem; padding: 5px 30px; border-radius: 10px; }
 
         /* Tauler Inferior */
-        .board-container { width: 100%; max-width: 400px; margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; display: none; }
+        .board-container { width: 100%; max-width: 400px; margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; }
         .player-row { background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; }
         .active-row { border: 2px solid white !important; box-shadow: 0 0 10px var(--primary); background: #222; }
         .timeline { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
@@ -93,30 +85,36 @@
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="turn-indicator">CARREGANT...</div>
+        <div id="turn-indicator">ESCOLTA LA CANÇÓ</div>
+        
         <button class="play-button" onclick="handlePlayClick()">
             <div class="play-icon" id="icon-play"></div>
             <div class="stop-icon" id="icon-stop"></div>
         </button>
 
-        <div id="ui-exact" class="btn-list" style="display:none;">
-            <p>Quin any es va publicar?</p>
-            <input type="number" id="year-guess" placeholder="Any" pattern="\d*">
-            <button class="btn btn-primary" onclick="checkGuessExact()">Endevinar</button>
+        <div id="ui-cards-mode" class="btn-list" style="display:none;">
+            <button class="btn btn-primary" style="margin-top:20px;" onclick="revealSolution()">REVELAR SOLUCIÓ</button>
         </div>
 
-        <div id="ui-timeline" class="btn-list" style="display:none;">
-            <p>En quina posició va la cançó?</p>
-            <div id="timeline-slots" class="timeline" style="justify-content: center;"></div>
+        <div id="ui-online-mode" class="btn-list" style="display:none;">
+            <div id="ui-exact" class="btn-list" style="display:none;">
+                <p>Quin any es va publicar?</p>
+                <input type="number" id="year-guess" placeholder="Any" pattern="\d*">
+                <button class="btn btn-primary" onclick="checkGuessExact()">Endevinar</button>
+            </div>
+            <div id="ui-timeline" class="btn-list" style="display:none;">
+                <p>On va aquesta cançó?</p>
+                <div id="timeline-slots" class="timeline" style="justify-content: center;"></div>
+            </div>
         </div>
 
         <div id="solution-card">
             <div id="guess-result" style="font-weight: bold; font-size: 1.4rem;"></div>
             <div id="song-year" class="year-badge">----</div>
             <img id="album-img" class="album-art" src="">
-            <div id="song-title" style="font-weight: bold; font-size: 1rem; padding:0 10px;"></div>
+            <div id="song-title" style="font-weight: bold; font-size: 1rem; padding: 0 10px;"></div>
             <div id="song-artist" style="color: var(--primary);"></div>
-            <button class="btn btn-primary" onclick="nextTurn()">Següent Cançó</button>
+            <button id="next-btn" class="btn btn-primary" onclick="nextTurn()">Següent Cançó</button>
         </div>
         <button class="btn btn-secondary" onclick="goToMenu()">Tornar al Menú</button>
     </div>
@@ -132,28 +130,19 @@
         const params = new URLSearchParams(window.location.search);
         const appleId = params.get('id');
 
-        // MEMÒRIA v42 - Forçat Línia del Temps per defecte
+        // MEMÒRIA v44
         let gameState = { players: [], currentTurn: 0, mode: 'timeline', playedIds: [], winCondition: 5 };
 
         function load() {
-            const saved = localStorage.getItem('sonabe_v42');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                gameState.mode = parsed.mode || 'timeline';
-                gameState.players = parsed.players || [];
-                gameState.currentTurn = parsed.currentTurn || 0;
-                gameState.playedIds = parsed.playedIds || [];
-                gameState.winCondition = parsed.winCondition || 5;
-            }
+            const saved = localStorage.getItem('sonabe_v44');
+            if (saved) gameState = JSON.parse(saved);
         }
-        function save() { localStorage.setItem('sonabe_v42', JSON.stringify(gameState)); }
+        function save() { localStorage.setItem('sonabe_v44', JSON.stringify(gameState)); }
 
-        // EXECUTEM LA CÀRREGA IMMEDIATA
         load();
 
         window.onload = () => {
             if (gameState.players.length > 0) renderBoards();
-
             if (appleId) {
                 if (!gameState.playedIds.includes(appleId)) gameState.playedIds.push(appleId);
                 save();
@@ -168,11 +157,12 @@
             
             const actual = gameState.players[gameState.currentTurn];
             
-            // PRIORITAT TOTAL AL MODE ONLINE
             if (gameState.players.length > 0 && actual) {
+                // MODE ONLINE
+                document.getElementById('ui-online-mode').style.display = 'block';
+                document.getElementById('ui-cards-mode').style.display = 'none';
                 document.getElementById('turn-indicator').innerText = `TORN DE: ${actual.name.toUpperCase()}`;
                 
-                // NO PERMETRE EL MODE "ANY" SI ELS JUGADORS HAN TRIAT "TIMELINE"
                 if (gameState.mode === 'timeline') {
                     document.getElementById('ui-timeline').style.display = 'flex';
                     document.getElementById('ui-exact').style.display = 'none';
@@ -181,21 +171,35 @@
                     document.getElementById('ui-timeline').style.display = 'none';
                     document.getElementById('ui-exact').style.display = 'flex';
                 }
+                document.getElementById('next-btn').innerText = "Següent Cançó";
+                renderBoards();
             } else {
-                // NOMÉS MODE SOLO SI NO HI HA NINGÚ A LA LLISTA
-                document.getElementById('turn-indicator').innerText = "ESCOLTA I ENDEVINA";
-                document.getElementById('ui-exact').style.display = 'flex';
-                document.getElementById('ui-timeline').style.display = 'none';
+                // MODE TINC CARTES (SOLO)
+                document.getElementById('ui-online-mode').style.display = 'none';
+                document.getElementById('ui-cards-mode').style.display = 'block';
+                document.getElementById('turn-indicator').innerText = "MODE ESCANEIG";
+                document.getElementById('next-btn').innerText = "ESCANEJAR SEGÜENT";
             }
-            renderBoards();
         }
 
-        function openSetup() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('setup-screen').classList.add('active');
-            updateSetupList();
+        function revealSolution() {
+            audio.pause();
+            document.getElementById('ui-cards-mode').style.display = 'none';
+            document.getElementById('solution-card').style.display = 'flex';
         }
 
+        function nextTurn() {
+            if (gameState.players.length > 0) {
+                gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
+                save();
+                if (params.get('mode') === 'rand') jugarAleatori(); else goToMenu();
+            } else {
+                // Si juguem amb cartes físiques, tornem directament a l'escaner
+                startScanner();
+            }
+        }
+
+        // FUNCIONS ONLINE
         function addPlayer() {
             const name = document.getElementById('player-input').value.trim();
             if (name) {
@@ -205,57 +209,31 @@
                 save(); updateSetupList(); renderBoards();
             }
         }
-
         function deletePlayer(i) { gameState.players.splice(i, 1); save(); updateSetupList(); renderBoards(); }
-
         function updateSetupList() {
             const list = document.getElementById('player-list-setup');
-            list.innerHTML = gameState.players.map((p, i) => `
-                <div class="player-item">
-                    <span>👤 ${p.name.toUpperCase()} (Inici: ${p.cards[0]})</span>
-                    <span class="del-btn" onclick="deletePlayer(${i})">✕</span>
-                </div>
-            `).join('');
+            list.innerHTML = gameState.players.map((p, i) => `<div class="player-item"><span>👤 ${p.name.toUpperCase()}</span><span class="del-btn" onclick="deletePlayer(${i})">✕</span></div>`).join('');
             document.getElementById('config-area').style.display = (gameState.players.length > 0) ? 'block' : 'none';
             setMode(gameState.mode);
         }
-
-        function updateWinCondition() { gameState.winCondition = parseInt(document.getElementById('win-input').value) || 5; save(); renderBoards(); }
-
-        function setMode(m) {
-            gameState.mode = m;
-            document.getElementById('mode-timeline').className = (m === 'timeline') ? 'btn mode-selected' : 'btn btn-outline';
-            document.getElementById('mode-exact').className = (m === 'exact') ? 'btn mode-selected' : 'btn btn-outline';
-            save();
-        }
+        function setMode(m) { gameState.mode = m; document.getElementById('mode-timeline').className = (m === 'timeline') ? 'btn mode-selected' : 'btn btn-outline'; document.getElementById('mode-exact').className = (m === 'exact') ? 'btn mode-selected' : 'btn btn-outline'; save(); }
 
         function renderBoards() {
             const container = document.getElementById('all-boards');
             if (gameState.players.length === 0) { container.style.display = 'none'; return; }
-            container.style.display = 'block';
-            container.innerHTML = "<h3>Línies del temps</h3>";
+            container.style.display = 'block'; container.innerHTML = "<h3>Taulers</h3>";
             gameState.players.forEach((p, i) => {
-                const isCurrent = (i === gameState.currentTurn && appleId);
-                const activeClass = isCurrent ? 'active-row' : '';
+                const active = (i === gameState.currentTurn && appleId) ? 'active-row' : '';
                 const sorted = [...p.cards].sort((a,b) => a-b);
-                container.innerHTML += `
-                    <div class="player-row ${activeClass}">
-                        <div style="font-size:0.8rem; font-weight:bold; color:var(--primary);">${p.name.toUpperCase()} (${p.cards.length}/${gameState.winCondition})</div>
-                        <div class="timeline">${sorted.map(y => `<div class="year-card">${y}</div>`).join('')}</div>
-                    </div>`;
+                container.innerHTML += `<div class="player-row ${active}"><div style="font-size:0.8rem; font-weight:bold; color:var(--primary);">${p.name.toUpperCase()} (${p.cards.length}/${gameState.winCondition})</div><div class="timeline">${sorted.map(y => `<div class="year-card">${y}</div>`).join('')}</div></div>`;
             });
         }
 
         function renderTimelineSlots(player) {
             const container = document.getElementById('timeline-slots');
-            container.innerHTML = "";
-            const sorted = [...player.cards].sort((a,b) => a-b);
-            container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(-1)">MÉS ANTIC</button>`;
-            sorted.forEach((y, i) => {
-                container.innerHTML += `<div class="year-card">${y}</div>`;
-                const label = (i === sorted.length - 1) ? "MÉS NOU" : "ENTRE";
-                container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(${i})">${label}</button>`;
-            });
+            container.innerHTML = ""; const sorted = [...player.cards].sort((a,b) => a-b);
+            container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(-1)">ANTIC</button>`;
+            sorted.forEach((y, i) => { container.innerHTML += `<div class="year-card">${y}</div>`; container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(${i})">${(i === sorted.length-1) ? "NOU" : "ENTRE"}</button>`; });
         }
 
         async function loadSong(id) {
@@ -273,70 +251,22 @@
         }
 
         function handlePlayClick() {
-            if (audio.paused) { 
-                document.getElementById('icon-play').style.display='none'; document.getElementById('icon-stop').style.display='block';
-                audio.volume = 0; audio.play();
-                let f = setInterval(() => { if (audio.volume < 0.9) audio.volume += 0.1; else { audio.volume = 1; clearInterval(f); } }, 50);
-            } else { 
-                document.getElementById('icon-play').style.display='block'; document.getElementById('icon-stop').style.display='none';
-                let f = setInterval(() => { if (audio.volume > 0.1) audio.volume -= 0.1; else { audio.volume = 0; audio.pause(); clearInterval(f); } }, 50);
-            }
+            const pi = document.getElementById('icon-play'); const si = document.getElementById('icon-stop');
+            if (audio.paused) { pi.style.display='none'; si.style.display='block'; audio.volume=0; audio.play(); let f = setInterval(() => { if (audio.volume < 0.9) audio.volume += 0.1; else { audio.volume = 1; clearInterval(f); } }, 50); }
+            else { pi.style.display='block'; si.style.display='none'; let f = setInterval(() => { if (audio.volume > 0.1) audio.volume -= 0.1; else { audio.volume = 0; audio.pause(); clearInterval(f); } }, 50); }
         }
 
-        function checkGuessExact() { showResult(parseInt(document.getElementById('year-guess').value) === parseInt(document.getElementById('song-year').innerText)); }
+        function checkGuessExact() { showResultOnline(parseInt(document.getElementById('year-guess').value) === parseInt(document.getElementById('song-year').innerText)); }
         function checkTimelineGuess(idx) {
-            const r = parseInt(document.getElementById('song-year').innerText);
-            const p = gameState.players[gameState.currentTurn];
-            const s = [...p.cards].sort((a,b) => a-b);
-            let ok = (idx === -1) ? (r <= s[0]) : (idx === s.length - 1) ? (r >= s[s.length-1]) : (r >= s[idx] && r <= s[idx+1]);
-            showResult(ok);
+            const r = parseInt(document.getElementById('song-year').innerText); const s = [...gameState.players[gameState.currentTurn].cards].sort((a,b) => a-b);
+            showResultOnline((idx === -1) ? (r <= s[0]) : (idx === s.length - 1) ? (r >= s[s.length-1]) : (r >= s[idx] && r <= s[idx+1]));
         }
 
-        function showResult(ok) {
-            audio.pause();
-            const year = parseInt(document.getElementById('song-year').innerText);
-            const p = gameState.players[gameState.currentTurn];
-            if (ok) {
-                if (p) {
-                    p.cards.push(year); save(); renderBoards();
-                    if (p.cards.length >= gameState.winCondition) {
-                        setTimeout(() => { document.getElementById('winner-name').innerText = p.name.toUpperCase(); document.getElementById('winner-screen').style.display = 'flex'; }, 800);
-                    }
-                }
-                document.getElementById('guess-result').innerText = "✅ ENCERTAT!";
-                document.getElementById('guess-result').style.color = "#28a745";
-            } else {
-                document.getElementById('guess-result').innerText = "❌ INCORRECTE";
-                document.getElementById('guess-result').style.color = "#fa2d48";
-            }
-            document.getElementById('ui-exact').style.display = 'none';
-            document.getElementById('ui-timeline').style.display = 'none';
-            document.getElementById('solution-card').style.display = 'flex';
-        }
-
-        function nextTurn() {
-            if (gameState.players.length > 0) gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-            save();
-            
-            // Forcem un retard mínim per garantir l'escriptura a memòria
-            setTimeout(() => {
-                jugarAleatori();
-            }, 180);
-        }
-
-        async function jugarAleatori() {
-            const sheet = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKbhu-nwl5Mrq1-_WiGPQyiflqbb3a5C9BRTTDWgwMNqTur9_8GBODKlJC9-OHol7EhIzap9Yv_lF/pub?output=csv&t=" + Date.now();
-            try {
-                const r = await fetch(sheet); const t = await r.text();
-                const lines = t.split("\n").slice(1);
-                const avail = lines.map(l => {
-                    const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    const url = c[6] ? c[6].replace(/"/g, "").trim() : "";
-                    const id = (url.match(/id=(\d+)/) || [])[1];
-                    return { url, id };
-                }).filter(s => s.url.includes("http") && !gameState.playedIds.includes(s.id));
-                window.location.href = avail[Math.floor(Math.random()*avail.length)].url + "&mode=rand";
-            } catch (e) {}
+        function showResultOnline(ok) {
+            audio.pause(); const p = gameState.players[gameState.currentTurn];
+            if (ok) { p.cards.push(parseInt(document.getElementById('song-year').innerText)); save(); renderBoards(); if (p.cards.length >= gameState.winCondition) { setTimeout(() => { document.getElementById('winner-name').innerText = p.name.toUpperCase(); document.getElementById('winner-screen').style.display = 'flex'; }, 800); } document.getElementById('guess-result').innerText = "✅ ENCERTAT!"; document.getElementById('guess-result').style.color = "#28a745"; }
+            else { document.getElementById('guess-result').innerText = "❌ INCORRECTE"; document.getElementById('guess-result').style.color = "#fa2d48"; }
+            document.getElementById('ui-online-mode').style.display = 'none'; document.getElementById('solution-card').style.display = 'flex';
         }
 
         function goToMenu() { window.location.href = window.location.pathname; }
@@ -346,7 +276,7 @@
             const q = new Html5Qrcode("reader");
             q.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { q.stop().then(() => { window.location.href = t; }); });
         }
-        function resetGame() { if(confirm("Reiniciar tot?")) { localStorage.removeItem('sonabe_v42'); goToMenu(); } }
+        function resetGame() { if(confirm("Reiniciar tot?")) { localStorage.removeItem('sonabe_v44'); goToMenu(); } }
     </script>
 </body>
 </html>
