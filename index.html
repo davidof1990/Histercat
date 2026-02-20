@@ -57,13 +57,12 @@
 
         /* Tauler */
         .board-container { width: 100%; max-width: 380px; margin-top: 25px; border-top: 1px solid #333; padding-top: 20px; }
-        .player-row { background: #1e1e1e; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; }
+        .player-row { background: #1e1e1e; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; transition: 0.3s; }
         .active-player-row { border: 2px solid white; box-shadow: 0 0 15px var(--primary); background: #252525; }
         .timeline { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
         .year-card { background: white; color: black; font-size: 0.8rem; font-weight: bold; padding: 3px 10px; border-radius: 5px; }
         .slot-btn { background: rgba(255,255,255,0.1); border: 1px dashed #666; color: #aaa; padding: 4px 10px; border-radius: 5px; font-size: 0.65rem; cursor: pointer; }
 
-        /* Victòria */
         #winner-screen { display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 100; padding: 20px; box-sizing: border-box; }
         
         input[type="number"], input[type="text"] { padding: 15px; border-radius: 12px; border: 1px solid var(--neon); background: #222; color: white; text-align: center; font-size: 1.1rem; width: 220px; outline: none; }
@@ -99,7 +98,7 @@
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="turn-indicator">TORN DE: ---</div>
+        <div id="turn-indicator">CARREGANT TORN...</div>
         <div class="neon-logo" style="font-size: 1.8rem;">Sonabé!</div>
 
         <button class="play-button" onclick="handlePlayClick()">
@@ -155,10 +154,10 @@
         let fadeInterval = null;
 
         function loadGame() {
-            const saved = localStorage.getItem('sonabe_v19');
+            const saved = localStorage.getItem('sonabe_v20');
             if (saved) gameState = JSON.parse(saved);
         }
-        function saveGame() { localStorage.setItem('sonabe_v19', JSON.stringify(gameState)); }
+        function saveGame() { localStorage.setItem('sonabe_v20', JSON.stringify(gameState)); }
 
         window.onload = () => {
             loadGame();
@@ -175,27 +174,22 @@
             }
         };
 
-        // --- SISTEMA DE AUDIO AMB FADE ---
+        // --- SISTEMA DE FADE ---
         function fadeIn() {
             clearInterval(fadeInterval);
             audio.volume = 0;
             audio.play();
             fadeInterval = setInterval(() => {
-                if (audio.volume < 0.9) {
-                    audio.volume += 0.1;
-                } else {
-                    audio.volume = 1;
-                    clearInterval(fadeInterval);
-                }
+                if (audio.volume < 0.9) audio.volume += 0.1;
+                else { audio.volume = 1; clearInterval(fadeInterval); }
             }, 60); 
         }
 
         function fadeOut(callback) {
             clearInterval(fadeInterval);
             fadeInterval = setInterval(() => {
-                if (audio.volume > 0.1) {
-                    audio.volume -= 0.1;
-                } else {
+                if (audio.volume > 0.1) audio.volume -= 0.1;
+                else {
                     audio.volume = 0;
                     audio.pause();
                     clearInterval(fadeInterval);
@@ -216,7 +210,7 @@
             }
         }
 
-        // --- GESTIÓ DE PANTALLES I JOC ---
+        // --- JOC ---
         function showSetup() { switchScreen('setup-screen'); updateSetupList(); }
         
         function setMode(m) {
@@ -308,19 +302,28 @@
             showResult(guess === real);
         }
 
+        // --- LÒGICA D'ANYS IGUALS MILLORADA ---
         function checkTimelineGuess(slotIndex) {
             const real = parseInt(document.getElementById('song-year').innerText);
             const player = gameState.players[gameState.currentTurn];
             const sorted = [...player.cards].sort((a,b) => a-b);
             let isCorrect = false;
-            if (slotIndex === -1) isCorrect = real <= sorted[0];
-            else if (slotIndex === sorted.length - 1) isCorrect = real >= sorted[sorted.length - 1];
-            else isCorrect = real >= sorted[slotIndex] && real <= sorted[slotIndex + 1];
+
+            if (slotIndex === -1) { 
+                // Més antic: correcte si és menor o IGUAL al primer
+                isCorrect = real <= sorted[0];
+            } else if (slotIndex === sorted.length - 1) { 
+                // Més nou: correcte si és major o IGUAL a l'últim
+                isCorrect = real >= sorted[sorted.length - 1];
+            } else { 
+                // Entremig: correcte si està entre els dos (inclosos)
+                isCorrect = real >= sorted[slotIndex] && real <= sorted[slotIndex + 1];
+            }
             showResult(isCorrect);
         }
 
         function showResult(correct) {
-            fadeOut(); // Fade quan es revela la solució
+            fadeOut(); 
             const real = parseInt(document.getElementById('song-year').innerText);
             const player = gameState.players[gameState.currentTurn];
             if (correct) {
@@ -344,9 +347,8 @@
             document.getElementById('solution-card').style.display = 'flex';
         }
 
-        // --- TRANSIICIÓ AMB FADE ---
         function nextTurn() {
-            fadeOut(() => { // Esperem a que el so marxi del tot per canviar
+            fadeOut(() => {
                 gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
                 saveGame();
                 if (isRandom) jugarAleatori(); else goToMenu();
@@ -382,7 +384,7 @@
                 qrcode.stop().then(() => { window.location.href = text; });
             });
         }
-        function resetGame() { if(confirm("Reiniciar?")) { localStorage.removeItem('sonabe_v19'); goToMenu(); } }
+        function resetGame() { if(confirm("Reiniciar?")) { localStorage.removeItem('sonabe_v20'); goToMenu(); } }
     </script>
 </body>
 </html>
