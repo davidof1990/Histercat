@@ -16,17 +16,17 @@
             text-align: center;
         }
 
-        /* Centrat de logotip i pantalles */
+        /* Estructura centrada */
         .neon-logo {
             font-weight: bold; font-size: 3.2rem; text-transform: uppercase; color: #fff;
             text-shadow: 0 0 10px #fff, 0 0 20px var(--neon), 0 0 40px var(--neon);
-            margin-bottom: 20px; width: 100%;
+            margin-bottom: 20px;
         }
 
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; gap: 20px; }
         .active { display: flex; }
 
-        /* Botons i Inputs */
+        /* Botons */
         .btn-list { display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center; }
         .btn {
             background: rgba(255,255,255,0.1); border: 1px solid #444; color: #eee;
@@ -37,33 +37,36 @@
         .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #666; color: #ccc; font-size: 0.7rem; width: 180px; }
 
+        /* Inputs */
         input[type="number"], input[type="text"] { 
             padding: 15px; border-radius: 10px; border: 1px solid var(--neon); 
-            background: #222; color: white; text-align: center; font-size: 1.2rem; width: 200px; 
+            background: #222; color: white; text-align: center; font-size: 1.2rem; width: 200px; outline: none;
         }
 
-        /* Joc */
+        /* Reproductor */
         .play-button {
-            width: 120px; height: 120px; background-color: var(--primary); border-radius: 50%;
+            width: 100px; height: 100px; background-color: var(--primary); border-radius: 50%;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 0 30px rgba(250, 45, 72, 0.5); border: none;
+            box-shadow: 0 0 30px rgba(250, 45, 72, 0.5); border: none; margin: 10px 0;
         }
-        .play-icon { width: 0; height: 0; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-left: 40px solid white; margin-left: 10px; }
-        .stop-icon { width: 40px; height: 40px; background-color: white; border-radius: 6px; display: none; }
+        .play-icon { width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent; border-left: 30px solid white; margin-left: 8px; }
+        .stop-icon { width: 35px; height: 35px; background-color: white; border-radius: 6px; display: none; }
 
+        /* Resultats */
         #solution-card { display: none; flex-direction: column; align-items: center; gap: 10px; animation: fadeIn 0.5s ease; }
-        .album-art { width: 200px; height: 200px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .year-badge { background: white; color: black; font-weight: 900; font-size: 2.5rem; padding: 5px 35px; border-radius: 15px; }
+        .album-art { width: 180px; height: 180px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .year-badge { background: white; color: black; font-weight: 900; font-size: 2.2rem; padding: 5px 30px; border-radius: 15px; }
 
-        /* Tauler Hitster */
+        /* Tauler de Cartes */
         .board-container { width: 100%; max-width: 380px; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px; }
         .player-row { background: #1e1e1e; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); text-align: left; }
         .active-turn { border: 2px solid white; box-shadow: 0 0 15px var(--primary); }
         .timeline { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-        .year-card { background: white; color: black; font-size: 0.8rem; font-weight: bold; padding: 3px 10px; border-radius: 5px; }
+        .year-card { background: white; color: black; font-size: 0.8rem; font-weight: bold; padding: 3px 10px; border-radius: 5px; animation: pop 0.3s ease; }
 
         #reader { width: 300px; border: 2px solid var(--neon); border-radius: 15px; overflow: hidden; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -73,7 +76,7 @@
         <div class="btn-list">
             <button class="btn btn-primary" onclick="startScanner()">Tinc les meves cartes 📷</button>
             <button class="btn btn-outline" onclick="showSetup()">Jugar online 🎲</button>
-            <button class="btn btn-secondary" onclick="resetGame()">Reiniciar Partida</button>
+            <button class="btn btn-secondary" onclick="resetGame()">Reiniciar Joc</button>
         </div>
         <div id="status-msg" style="font-size: 0.7rem; color: var(--primary); margin-top: 10px;"></div>
     </div>
@@ -91,31 +94,36 @@
 
     <div id="game-screen" class="screen">
         <div class="neon-logo" style="font-size: 1.8rem;">Sonabé!</div>
-        <div id="turn-msg" style="color: var(--primary); font-weight: bold;"></div>
+        <div id="turn-msg" style="color: var(--primary); font-weight: bold; margin-bottom: 5px;"></div>
 
         <button class="play-button" onclick="togglePlay()">
             <div class="play-icon" id="icon-play"></div>
             <div class="stop-icon" id="icon-stop"></div>
         </button>
 
-        <div id="guess-section" style="margin-top: 10px;">
-            <p>Quin any es va publicar?</p>
-            <input type="number" id="year-guess" placeholder="Ex: 1995">
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="checkGuess()">Endevinar</button>
+        <div id="guess-section" style="width: 100%;">
+            <p style="margin-bottom: 10px;">Quin any es va publicar?</p>
+            <input type="number" id="year-guess" placeholder="Ex: 1995" pattern="\d*">
+            <button class="btn btn-primary" style="margin-top: 15px;" onclick="checkGuess()">Endevinar</button>
+            <button class="btn btn-secondary" style="margin-top: 10px; width: 150px;" onclick="location.reload()">Sortir al Menú</button>
         </div>
 
         <div id="solution-card">
-            <div id="guess-result" style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;"></div>
+            <div id="guess-result" style="font-weight: 900; font-size: 1.5rem;"></div>
             <div id="song-year" class="year-badge">----</div>
             <img id="album-img" class="album-art" src="">
-            <div id="song-title" style="font-weight: bold; font-size: 1.1rem;"></div>
-            <div id="song-artist" style="color: var(--primary); margin-bottom: 10px;"></div>
-            <button class="btn btn-primary" onclick="nextTurnFlow()">Següent Torn</button>
+            <div id="song-title" style="font-weight: bold; font-size: 1.1rem; padding: 0 10px;"></div>
+            <div id="song-artist" style="color: var(--primary); font-size: 1rem;"></div>
+            
+            <div class="btn-list" style="margin-top: 10px;">
+                <button class="btn btn-primary" onclick="nextTurnFlow()">Següent Cançó</button>
+                <button class="btn btn-secondary" onclick="location.reload()">Tornar al Menú</button>
+            </div>
         </div>
     </div>
 
     <div id="scanner-screen" class="screen">
-        <div class="neon-logo" style="font-size: 1.5rem;">Escaneja el QR</div>
+        <div class="neon-logo" style="font-size: 1.5rem;">Escaneja</div>
         <div id="reader"></div>
         <button class="btn btn-secondary" onclick="location.reload()">Tornar</button>
     </div>
@@ -130,9 +138,8 @@
         const appleId = params.get('id');
         const isRandom = params.get('mode') === 'rand';
 
-        let gameState = JSON.parse(localStorage.getItem('sonabe_v6')) || { players: [], currentTurn: 0 };
+        let gameState = JSON.parse(localStorage.getItem('sonabe_v7')) || { players: [], currentTurn: 0 };
         let songData = null;
-        let lastHit = false;
 
         window.onload = () => {
             if (appleId) {
@@ -206,32 +213,31 @@
 
         function checkGuess() {
             const guess = document.getElementById('year-guess').value;
-            const realYear = document.getElementById('song-year').innerText;
+            const realYear = parseInt(document.getElementById('song-year').innerText);
             
             if (!guess) { alert("Posa un any!"); return; }
 
-            document.getElementById('guess-section').style.display = 'none';
-            document.getElementById('solution-card').style.display = 'flex';
-            
-            if (guess == realYear) {
+            // Si encerta, afegim la carta immediatament al tauler abans de mostrar el resultat
+            if (parseInt(guess) === realYear && gameState.players.length > 0) {
+                gameState.players[gameState.currentTurn].cards.push(realYear);
+                save();
+                renderBoards(); // Actualitza el tauler visualment
                 document.getElementById('guess-result').innerText = "✅ ENCERTAT!";
                 document.getElementById('guess-result').style.color = "#28a745";
-                lastHit = true;
             } else {
                 document.getElementById('guess-result').innerText = "❌ INCORRECTE";
                 document.getElementById('guess-result').style.color = "#fa2d48";
-                lastHit = false;
             }
+
+            document.getElementById('guess-section').style.display = 'none';
+            document.getElementById('solution-card').style.display = 'flex';
         }
 
         function nextTurnFlow() {
-            if (lastHit && gameState.players.length > 0) {
-                gameState.players[gameState.currentTurn].cards.push(parseInt(document.getElementById('song-year').innerText));
-            }
             if (gameState.players.length > 0) {
                 gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
+                save();
             }
-            save();
             if (isRandom) jugarAleatori(); else window.location.href = window.location.pathname;
         }
 
@@ -257,8 +263,8 @@
             });
         }
 
-        function save() { localStorage.setItem('sonabe_v6', JSON.stringify(gameState)); }
-        function resetGame() { if(confirm("Esborrar tot?")) { localStorage.removeItem('sonabe_v6'); location.reload(); } }
+        function save() { localStorage.setItem('sonabe_v7', JSON.stringify(gameState)); }
+        function resetGame() { if(confirm("Vols esborrar la partida actual?")) { localStorage.removeItem('sonabe_v7'); location.reload(); } }
     </script>
 </body>
 </html>
