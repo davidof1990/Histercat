@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonabé! 🎶 - Versió 46</title>
+    <title>Sonabé! 🎶 - Versió 47</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --primary: #fa2d48; --neon: #ff007f; --bg: #121212; }
@@ -22,14 +22,12 @@
         .mode-selected { border-color: var(--neon) !important; color: white !important; background: rgba(255, 0, 127, 0.4) !important; box-shadow: 0 0 15px var(--neon); }
         .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #666; color: #ccc; font-size: 0.75rem; width: 180px; margin-top: 10px; }
 
-        /* Llista Jugadors Setup */
+        /* Setup Jugadors */
         .player-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; width: 280px; margin-bottom: 8px; border: 1px solid #444; }
         .del-btn { color: var(--primary); font-weight: bold; cursor: pointer; font-size: 1.4rem; padding: 0 10px; }
 
-        /* Indicador de Torn */
+        /* Joc */
         #turn-indicator { background: var(--primary); color: white; padding: 12px; border-radius: 10px; font-weight: 900; width: 100%; margin-bottom: 15px; text-transform: uppercase; font-size: 1.1rem; }
-
-        /* Reproductor */
         .play-button { width: 90px; height: 90px; background-color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 10px 0; border: none; }
         .play-icon { width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 28px solid white; margin-left: 8px; }
         .stop-icon { width: 30px; height: 30px; background-color: white; border-radius: 4px; display: none; }
@@ -95,7 +93,7 @@
                 <button class="btn btn-primary" onclick="checkGuessExact()">Endevinar</button>
             </div>
             <div id="ui-timeline" class="btn-list" style="display:none;">
-                <p>On va aquesta cançó?</p>
+                <p>En quina posició va la cançó?</p>
                 <div id="timeline-slots" class="timeline" style="justify-content: center;"></div>
             </div>
         </div>
@@ -125,34 +123,34 @@
         const audio = document.getElementById('audio-player');
         const params = new URLSearchParams(window.location.search);
         const appleId = params.get('id');
+
+        // MEMÒRIA v47
         let gameState = { players: [], currentTurn: 0, mode: 'timeline', playedIds: [], winCondition: 5 };
 
         function load() {
-            const saved = localStorage.getItem('sonabe_v46');
+            const saved = localStorage.getItem('sonabe_v47');
             if (saved) gameState = JSON.parse(saved);
         }
-        function save() { localStorage.setItem('sonabe_v46', JSON.stringify(gameState)); }
+        function save() { localStorage.setItem('sonabe_v47', JSON.stringify(gameState)); }
 
         load();
 
         window.onload = () => {
             if (appleId) {
-                // Si hi ha una cançó, forcem l'entrada a la pantalla de joc immediatament
-                showGameScreen();
+                renderGameUI();
                 loadSong(appleId);
             } else if (gameState.players.length > 0) {
                 renderBoards();
             }
         };
 
-        function showGameScreen() {
+        function renderGameUI() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('game-screen').classList.add('active');
             
             const actual = gameState.players[gameState.currentTurn];
             
             if (gameState.players.length > 0 && actual) {
-                // PARTIDA MULTI-JUGADOR
                 document.getElementById('ui-online-mode').style.display = 'block';
                 document.getElementById('ui-cards-mode').style.display = 'none';
                 document.getElementById('turn-indicator').innerText = `TORN DE: ${actual.name.toUpperCase()}`;
@@ -168,7 +166,6 @@
                 }
                 renderBoards();
             } else {
-                // MODE CARTES FÍSIQUES
                 document.getElementById('ui-online-mode').style.display = 'none';
                 document.getElementById('ui-cards-mode').style.display = 'block';
                 document.getElementById('turn-indicator').innerText = "MODE LLIURE";
@@ -176,23 +173,7 @@
             }
         }
 
-        function revealSolutionSolo() {
-            audio.pause();
-            document.getElementById('ui-cards-mode').style.display = 'none';
-            document.getElementById('solution-card').style.display = 'flex';
-        }
-
-        function nextAction() {
-            if (gameState.players.length > 0) {
-                gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-                save();
-                if (params.get('mode') === 'rand') jugarAleatori(); else goToMenu();
-            } else {
-                startScanner();
-            }
-        }
-
-        // SETUP JUGADORS
+        // MENÚS
         function openSetup() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('setup-screen').classList.add('active');
@@ -217,6 +198,8 @@
             document.getElementById('config-area').style.display = (gameState.players.length > 0) ? 'block' : 'none';
             setMode(gameState.mode);
         }
+
+        function updateWinCondition() { gameState.winCondition = parseInt(document.getElementById('win-input').value) || 5; save(); renderBoards(); }
 
         function setMode(m) {
             gameState.mode = m;
@@ -243,7 +226,7 @@
             sorted.forEach((y, i) => { container.innerHTML += `<div class="year-card">${y}</div>`; container.innerHTML += `<button class="slot-btn" onclick="checkTimelineGuess(${i})">${(i === sorted.length-1) ? "NOU" : "ENTRE"}</button>`; });
         }
 
-        // LOGICA REPRODUCTOR I SOLUCIONS
+        // LOGICA JOC
         async function loadSong(id) {
             try {
                 const r = await fetch(`https://itunes.apple.com/lookup?id=${id}&country=es`);
@@ -277,12 +260,22 @@
             document.getElementById('ui-online-mode').style.display = 'none'; document.getElementById('solution-card').style.display = 'flex';
         }
 
+        function revealSolutionSolo() { audio.pause(); document.getElementById('ui-cards-mode').style.display = 'none'; document.getElementById('solution-card').style.display = 'flex'; }
+
+        function nextAction() {
+            if (gameState.players.length > 0) {
+                gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
+                save();
+                if (params.get('mode') === 'rand') jugarAleatori(); else goToMenu();
+            } else { startScanner(); }
+        }
+
         // UTILITATS
         function goToMenu() { window.location.href = window.location.pathname; }
         function startScanner() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('scanner-screen').classList.add('active'); const q = new Html5Qrcode("reader"); q.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => { q.stop().then(() => { window.location.href = t; }); }); }
-        function resetGame() { if(confirm("Vols esborrar tota la partida?")) { localStorage.removeItem('sonabe_v46'); goToMenu(); } }
+        function resetGame() { if(confirm("Vols reiniciar-ho tot?")) { localStorage.removeItem('sonabe_v47'); goToMenu(); } }
         async function jugarAleatori() {
-            save(); // Guardar abans de saltar
+            save(); 
             const sheet = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSKbhu-nwl5Mrq1-_WiGPQyiflqbb3a5C9BRTTDWgwMNqTur9_8GBODKlJC9-OHol7EhIzap9Yv_lF/pub?output=csv&t=" + Date.now();
             try {
                 const r = await fetch(sheet); const t = await r.text();
@@ -294,7 +287,7 @@
                     return { url, id };
                 }).filter(s => s.url.includes("http") && !gameState.playedIds.includes(s.id));
                 window.location.href = avail[Math.floor(Math.random()*avail.length)].url + "&mode=rand";
-            } catch (e) { alert("Error al carregar la llista de cançons."); }
+            } catch (e) { alert("Error al carregar cançó."); }
         }
     </script>
 </body>
