@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonabé! 🎶 - Versió 66</title>
+    <title>Sonabé! 🎶 - Versió 67</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --primary: #fa2d48; --neon: #ff007f; --bg: #121212; }
@@ -162,6 +162,51 @@
             }
         }
 
+        // --- FADE IN / FADE OUT LOGIC ---
+        function handlePlayClick() {
+            const pi = document.getElementById('icon-play');
+            const si = document.getElementById('icon-stop');
+
+            if (audio.paused) {
+                pi.style.display = 'none';
+                si.style.display = 'block';
+                audio.volume = 0;
+                audio.play();
+                let fade = setInterval(() => {
+                    if (audio.volume < 0.9) audio.volume += 0.1;
+                    else { audio.volume = 1; clearInterval(fade); }
+                }, 50);
+            } else {
+                let fade = setInterval(() => {
+                    if (audio.volume > 0.1) audio.volume -= 0.1;
+                    else {
+                        audio.volume = 0;
+                        audio.pause();
+                        pi.style.display = 'block';
+                        si.style.display = 'none';
+                        clearInterval(fade);
+                    }
+                }, 50);
+            }
+        }
+
+        function nextAction() {
+            let fade = setInterval(() => {
+                if (audio.volume > 0.1) audio.volume -= 0.1;
+                else {
+                    audio.volume = 0;
+                    audio.pause();
+                    clearInterval(fade);
+                    if(gameState.players.length > 0) { 
+                        gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length; 
+                        save();
+                        jugarAleatori(); 
+                    } else { startScanner(); }
+                }
+            }, 30);
+        }
+
+        // --- SCANNER ---
         function startScanner() {
             document.getElementById('scanner-screen').style.display = 'flex';
             html5QrCode = new Html5Qrcode("reader");
@@ -174,6 +219,7 @@
             else { document.getElementById('scanner-screen').style.display = 'none'; }
         }
 
+        // --- SETUP ---
         function openSetup() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('setup-screen').classList.add('active'); updateSetupList(); }
         function addPlayer() { 
             const n = document.getElementById('player-input').value.trim(); 
@@ -197,6 +243,7 @@
             save();
         }
 
+        // --- LOGICA JOC ---
         function renderBoards() {
             const container = document.getElementById('all-boards');
             if (gameState.players.length === 0) { container.style.display = 'none'; return; }
@@ -227,10 +274,7 @@
                 document.getElementById('song-year').innerText = s.releaseDate.substring(0,4);
             }
         }
-        function handlePlayClick() {
-            if (audio.paused) { document.getElementById('icon-play').style.display='none'; document.getElementById('icon-stop').style.display='block'; audio.play(); }
-            else { document.getElementById('icon-play').style.display='block'; document.getElementById('icon-stop').style.display='none'; audio.pause(); }
-        }
+
         function checkTimelineGuess(idx) {
             const r = parseInt(document.getElementById('song-year').innerText);
             const p = gameState.players[gameState.currentTurn];
@@ -243,9 +287,7 @@
                     document.getElementById('winner-screen').classList.add('active'); return; 
                 }
                 revealSolutionSolo(true);
-            } else {
-                revealSolutionSolo(false);
-            }
+            } else { revealSolutionSolo(false); }
         }
 
         function revealSolutionSolo(correct) { 
@@ -253,30 +295,17 @@
             if (correct === true) { res.innerText = "✅ ENCERTAT!"; res.style.color = "#28a745"; }
             else if (correct === false) { res.innerText = "❌ INCORRECTE"; res.style.color = "#fa2d48"; }
             else { res.innerText = ""; }
-
             document.getElementById('ui-online-mode').style.display='none'; 
             document.getElementById('ui-cards-mode').style.display='none'; 
             document.getElementById('solution-card').style.display='flex'; 
         }
-        
-        function nextAction() {
-            audio.pause();
-            if(gameState.players.length > 0) { 
-                gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length; 
-                save();
-                jugarAleatori(); 
-            } else { startScanner(); }
-        }
 
-        // REINICI TOTAL v66
         function resetGame() { 
-            if(confirm("Vols esborrar tota la partida i els jugadors?")) { 
+            if(confirm("Reiniciar jugadors i partida?")) { 
                 localStorage.removeItem('sonabe_permanencia_total'); 
-                gameState = { players: [], currentTurn: 0, mode: 'timeline', playedIds: [], winCondition: 5 };
                 window.location.href = window.location.pathname; 
             } 
         }
-
         function goToMenu() { window.location.href = window.location.pathname; }
 
         async function jugarAleatori() {
